@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>员工管理系统</title>
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+          integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script>
+        let pages
+        let pageNo = 1
+        function getEmp(pageNo=1){
+            var childs = $("#empList").children()
+            for(var j = 0; j < childs.length; j++) {
+                childs[j].remove()
+            }
+            $.ajax({
+                type: 'get',
+                url: 'http://10.64.190.75:8888/emp/allEmp/'+pageNo,
+                success: function (data) {
+                    let pageInfo = JSON.parse(data)
+                    var list = pageInfo.list
+                    console.log(list);
+                    pages = pageInfo.pages
+                    for (let i = 0; i < list.length; i++) {
+                        var html = "<tr>" +
+                            "                        <th scope='row'>" + list[i].id + "</th>" +
+                            "                        <td>" + list[i].userName + "</td>\n" +
+                            "                        <td>" + list[i].birthday + "</td>\n" +
+                            "                        <td>" + list[i].entryDate + "</td>\n" +
+                            "                        <td>" + list[i].job + "</td>\n" +
+                            "                        <td>" + list[i].salary + "</td>\n" +
+                            "                        <td>" + list[i].resume + "</td>\n" +
+                            "                        <td>" + list[i].dept.deptName + "</td>\n" +
+                            "                        <td><button class='btn btn-sm btn-primary' id='edit'>编辑</button>" +
+                            "                            <button class='btn btn-sm btn-danger ml-xl-2' id='del'>删除</button></td>\n" +
+                            "                    </tr>"
+                        $("#empList").append(html)
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            })
+        }
+        function init() {
+            // 10.64.190.75 http://localhost:8888/emp/allEmp
+            $.ajax({
+                type: 'get',
+                url: 'http://10.64.190.75:8888/emp/allEmp/'+pageNo,
+                success: function (data) {
+                    let pageInfo = JSON.parse(data)
+                    var list = pageInfo.list
+                    console.log(list);
+                    pages = pageInfo.pages
+                    for (let i = 0; i < list.length; i++) {
+                        var html = "<tr>" +
+                            "                        <th scope='row'>" + list[i].id + "</th>" +
+                            "                        <td>" + list[i].userName + "</td>\n" +
+                            "                        <td>" + list[i].birthday + "</td>\n" +
+                            "                        <td>" + list[i].entryDate + "</td>\n" +
+                            "                        <td>" + list[i].job + "</td>\n" +
+                            "                        <td>" + list[i].salary + "</td>\n" +
+                            "                        <td>" + list[i].resume + "</td>\n" +
+                            "                        <td>" + list[i].dept.deptName + "</td>\n" +
+                            "                        <td><button class='btn btn-sm btn-primary' id='edit'>编辑</button>" +
+                            "                            <button class='btn btn-sm btn-danger ml-xl-2' id='del'>删除</button></td>\n" +
+                            "                    </tr>"
+                        $("#empList").append(html)
+                    }
+                    for (let i = pages; i > 0; i--) {
+                        let pageId = `page${i}`
+                        let html2 = "<li class=\"page-item\"><a class=\"page-link\" id="+pageId+">"+i+"</a></li>"
+                        $("#page").children().eq(0).after(html2)
+                    }
+                    $("#page").children().eq(1).addClass("active")
+                    for (let i = 1; i <= pages; i++) {
+                        $("#page").delegate("#page" + i,"click",function (){
+                            pageNo = i
+                            if (i==1){
+                                $("#pre").parent().addClass("disabled")
+                                $("#after").parent().removeClass("disabled")
+                            }else if (i==pages){
+                                $("#pre").parent().removeClass("disabled")
+                                $("#after").parent().addClass("disabled")
+                            }
+                            $(this).parent().addClass("active").siblings().removeClass("active")
+                            pageNo = $(this).text()
+                            var childs = $("#empList").children()
+                            for(var j = 0; j < childs.length; j++) {
+                                childs[j].remove()
+                            }
+                            getEmp(pageNo)
+                        })
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            })
+        }
+
+        $(function () {
+            let username = sessionStorage.getItem("userInfo")
+            if (username==null){
+                $("#username").text("未登录")
+                $(window).attr("location", "login.html")
+            }else {
+                $("#username").text(username)
+            }
+            $("#logout").click(()=>{
+                sessionStorage.removeItem("userInfo")
+                window.location.reload()
+            })
+            //初始化数据
+            init()
+
+            $("#toAddEmp").click(() => {
+                $(window).attr('location', 'addEmp.html');
+            })
+
+            $("#empList").delegate("#edit", "click", function () {
+                let id = $(this).parent().parent().children().eq(0).text()
+                let userName = $(this).parent().parent().children().eq(1).text()
+                let birthday = $(this).parent().parent().children().eq(2).text()
+                let entryDate = $(this).parent().parent().children().eq(3).text()
+                let job = $(this).parent().parent().children().eq(4).text()
+                let salary = $(this).parent().parent().children().eq(5).text()
+                let resume = $(this).parent().parent().children().eq(6).text()
+                let deptName = $(this).parent().parent().children().eq(7).text()
+
+                let data = {
+                    id,
+                    userName,
+                    birthday,
+                    entryDate,
+                    job,
+                    salary,
+                    resume,
+                    dept: {
+                        deptName
+                    }
+                }
+                sessionStorage.removeItem("empInfo")
+                sessionStorage.setItem("empInfo", JSON.stringify(data))
+                $(window).attr('location', 'updateEmp.html');
+            })
+            $("#empList").delegate("#del", "click", function () {
+                let id = $(this).parent().parent().children().eq(0).text()
+                $.ajax({
+                    url: "http://10.64.190.75:8888/emp/deleteEmp",
+                    type: "post",
+                    data: id,
+                    dataType: 'json',
+                    contentType: "application/json; charset=UTF-8",
+                    success() {
+                        console.log("删除成功");
+                        getEmp(pageNo)
+                    },
+                    error(result) {
+                        console.log(result);
+                    }
+                })
+            })
+
+            $("#pre").click(function (){
+                pageNo--
+                if (pageNo==1){
+                    $("#pre").parent().addClass("disabled")
+                }
+                $("#page"+pageNo).parent().addClass("active").siblings().removeClass("active")
+                $("#after").parent().removeClass("disabled")
+                getEmp(pageNo)
+            })
+            $("#after").click(function (){
+                pageNo++
+                if (pageNo==pages){
+                    $("#after").parent().addClass("disabled")
+                }
+                $("#page"+pageNo).parent().addClass("active").siblings().removeClass("active")
+                $("#pre").parent().removeClass("disabled")
+                getEmp(pageNo)
+            })
+
+            $("#searchBtn").click(function (){
+                if ($("#search").val()==""){
+                    getEmp()
+                }else {
+                    $.ajax({
+                        type: 'get',
+                        url: 'http://10.64.190.75:8888/emp/empById/'+$("#search").val(),
+                        success: function (data) {
+                            var childs = $("#empList").children()
+                            for(var j = 0; j < childs.length; j++) {
+                                childs[j].remove()
+                            }
+                            let pageInfo = JSON.parse(data)
+                            console.log(pageInfo);
+                            for (let i = 0; i < pageInfo.length; i++) {
+                                var html = "<tr>" +
+                                    "                        <th scope='row'>" + pageInfo[i].id + "</th>" +
+                                    "                        <td>" + pageInfo[i].userName + "</td>\n" +
+                                    "                        <td>" + pageInfo[i].birthday + "</td>\n" +
+                                    "                        <td>" + pageInfo[i].entryDate + "</td>\n" +
+                                    "                        <td>" + pageInfo[i].job + "</td>\n" +
+                                    "                        <td>" + pageInfo[i].salary + "</td>\n" +
+                                    "                        <td>" + pageInfo[i].resume + "</td>\n" +
+                                    "                        <td>" + pageInfo[i].dept.deptName + "</td>\n" +
+                                    "                        <td><button class='btn btn-sm btn-primary' id='edit'>编辑</button>" +
+                                    "                            <button class='btn btn-sm btn-danger ml-xl-2' id='del'>删除</button></td>\n" +
+                                    "                    </tr>"
+                                $("#empList").append(html)
+                            }
+                        },
+                        error: function (err) {
+                            console.log(err);
+                        }
+                    })
+                }
+
+            })
+        })
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand col-10" href="javascript:;">员工管理系统</a>
+    <div class="collapse navbar-collapse">
+        <h6 id="username"></h6>
+        <button id="logout" class="btn btn-sm btn-info ml-2">注销</button>
+    </div>
+</nav>
+<div class="container">
+    <div class="row mt-5 mb-3">
+        <h2>员工管理系统---全部员工</h2>
+    </div>
+    <div class="row mb-3">
+        <div class="col-xl-8 col-sm-6">
+            <button class="btn btn-primary" id="toAddEmp">新增员工</button>
+        </div>
+        <div class="col-xl-4 col-sm-6 form-inline">
+            <input class="form-control" id="search" type="text">
+            <button id="searchBtn" class="btn btn-success ml-md-2">查询</button>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">用户名</th>
+                <th scope="col">生日</th>
+                <th scope="col">入职时间</th>
+                <th scope="col">工作</th>
+                <th scope="col">薪资</th>
+                <th scope="col">说明</th>
+                <th scope="col">部门</th>
+                <th scope="col">操作</th>
+            </tr>
+            </thead>
+            <tbody id="empList"></tbody>
+        </table>
+    </div>
+    <nav>
+        <ul class="pagination justify-content-center" id="page">
+            <li class="page-item disabled">
+                <a class="page-link" id="pre">&laquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" id="after">&raquo;</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
+</html>

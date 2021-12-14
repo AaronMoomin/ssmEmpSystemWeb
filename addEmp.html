@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>增加员工</title>
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+          integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="./js/moment.js"></script>
+    <script>
+        $(function () {
+            $("#addEmp").click(() => {
+                let userName = $("#userName").val();
+                let birthday = $("#birthday").val();
+                let entryDate = $("#entryDate").val();
+                let job = $("#job").val();
+                let salary = eval($("#salary").val());
+                let resume = $("#resume").val();
+                let deptId = $("#dept").val();
+                let deptName = $("#dept option:selected").text();
+                if (userName === "" && birthday === ""
+                    && entryDate === "" && job === null
+                    && salary === undefined && resume === ""
+                    && deptId === null) {
+                    return;
+                }
+
+                let data = {
+                    userName,
+                    birthday: moment(birthday).format('YYYY-MM-DD HH:mm:ss'),
+                    entryDate: moment(entryDate).format('YYYY-MM-DD HH:mm:ss'),
+                    job,
+                    salary,
+                    resume,
+                    dept: {
+                        id: deptId,
+                        deptName
+                    }
+                }
+                console.log(data);
+                $.ajax({
+                    url: "http://10.64.190.75:8888/emp/addEmp",
+                    type: "post",
+                    data: JSON.stringify(data),
+                    dataType: 'json',
+                    contentType: "application/json; charset=UTF-8",
+                    success(data) {
+                        console.log("添加成功");
+                        $(window).attr("location", "index.html");
+                    },
+                    error(err) {
+                        console.log(err);
+                    }
+                })
+            })
+        })
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row mt-2 mb-3">
+        <h2>增加新员工</h2>
+    </div>
+    <form class="was-validated">
+        <div class="form-group">
+            <label>用户名</label>
+            <input class="form-control" id="userName" required type="text">
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <label>生日</label>
+                <input class="form-control" id="birthday" required type="datetime-local"/>
+            </div>
+            <div class="form-group col">
+                <label>入职时间</label>
+                <input class="form-control" id="entryDate" required type="datetime-local"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>工作</label>
+            <select class="custom-select" id="job" required>
+                <option disabled selected value="">选择工作</option>
+                <option value="前端">前端</option>
+                <option value="后端">后端</option>
+                <option value="全栈">全栈</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>薪资</label>
+            <input class="form-control" id="salary" required type="text">
+        </div>
+        <div class="form-group">
+            <label>说明</label>
+            <input class="form-control" id="resume" required type="text">
+        </div>
+        <div class="form-group">
+            <label>部门</label>
+            <select class="custom-select" id="dept" required>
+                <option disabled selected value="">选择部门</option>
+                <option value="1">前端开发部</option>
+                <option value="2">后端开发部</option>
+            </select>
+        </div>
+    </form>
+    <button class="btn btn-primary" id="addEmp">新增</button>
+</div>
+</body>
+</html>
